@@ -14,4 +14,4 @@ confy = "0.6"
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 natural_sort = { git = "https://github.com/jwiesler/natural-sort-rs" }
-walkdir = "2.3"
+walkdir = "2.5"
