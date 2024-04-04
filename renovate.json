@@ -1,6 +1,26 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ]
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "enabledManagers": [
+        "cargo"
+    ],
+    "extends": [
+        "config:recommended"
+    ],
+    "updatePinnedDependencies": false,
+    "lockFileMaintenance": {
+        "automerge": true,
+        "enabled": true,
+        "schedule": [
+            "before 4am"
+        ]
+    },
+    "packageRules": [
+        {
+            "automerge": true,
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ]
+        }
+    ]
 }
