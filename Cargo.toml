@@ -12,6 +12,6 @@ regex = "1"
 tempfile = "3"
 confy = "0.6"
 serde = { version = "1", features = ["derive"] }
-toml = "0.7"
+toml = "0.8"
 natural_sort = { git = "https://github.com/jwiesler/natural-sort-rs" }
 walkdir = "2.3"
