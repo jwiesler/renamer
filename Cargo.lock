@@ -168,7 +168,7 @@ checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
 [[package]]
 name = "natural_sort"
 version = "0.1.0"
-source = "git+https://github.com/jwiesler/natural-sort-rs#f3e9dbef833b3a30f2e7f9e5b1e4daef4084139d"
+source = "git+https://github.com/jwiesler/natural-sort-rs#78dbb07b9c8b5186b1e63afd8e0c75a53d9d0975"
 
 [[package]]
 name = "option-ext"
