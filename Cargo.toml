@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 structopt = { version = "0.3.26", default-features = false }
 regex = "1.10.4"
-tempfile = "3"
+tempfile = "3.10.1"
 confy = "0.6.1"
 serde = { version = "1.0.199", features = ["derive"] }
 toml = "0.8"
