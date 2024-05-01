@@ -10,7 +10,7 @@ edition = "2021"
 structopt = { version = "0.3", default-features = false }
 regex = "1.10.4"
 tempfile = "3"
-confy = "0.6"
+confy = "0.6.1"
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 natural_sort = { git = "https://github.com/jwiesler/natural-sort-rs" }
