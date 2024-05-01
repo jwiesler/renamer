@@ -11,6 +11,9 @@
         "automerge": true,
         "enabled": true
     },
+    "patch": {
+        "enabled": false
+    },
     "packageRules": [
         {
             "automerge": true,
