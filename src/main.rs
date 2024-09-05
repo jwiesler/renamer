@@ -8,8 +8,6 @@ use serde::{Deserialize, Serialize};
 use regex::Regex;
 use structopt::StructOpt;
 
-use natural_sort;
-
 use crate::action::Action;
 use crate::file::{FsItem, FsItemType, ReadFileError};
 use std::process::Command;
@@ -61,11 +59,7 @@ fn get_items_in_dir(
             if include_dirs || !is_dir {
                 let file_name = e.path();
                 let str = file_name.to_str().unwrap();
-                let str = if str.starts_with(directory) {
-                    &str[directory.len()..]
-                } else {
-                    str
-                };
+                let str = str.strip_prefix(directory).unwrap_or(str);
                 let str = str.trim_start_matches("/").trim_start_matches("\\");
                 if regex.is_match(str) {
                     let item_type = if is_dir {
@@ -141,7 +135,6 @@ fn run_editor(editor_cmd: &mut Command, editor: &str) {
     match editor_cmd.spawn() {
         Ok(mut s) => {
             s.wait().unwrap();
-            ()
         }
         Err(err) => {
             panic!("Failed to start editor \"{}\": {:?}", editor, err)
@@ -149,15 +142,15 @@ fn run_editor(editor_cmd: &mut Command, editor: &str) {
     }
 }
 
-fn run_edit_process<'a, 'b>(
+fn run_edit_process<'a>(
     editor: &str,
-    outfile: &'b mut file::FilesFile,
-    files: &'a Vec<FsItem>,
+    outfile: &mut file::FilesFile,
+    files: &'a [FsItem],
 ) -> Option<Vec<Action<'a>>> {
     let stdin = io::stdin();
 
     let mut editor_cmd = Command::new(editor);
-    editor_cmd.arg(&outfile.path());
+    editor_cmd.arg(outfile.path());
 
     let mut input = String::new();
     loop {
@@ -185,7 +178,7 @@ fn run_edit_process<'a, 'b>(
                 }
             }
             Err(err) => match err {
-                ReadFileError::Io(_) => Err(err).unwrap(),
+                ReadFileError::Io(_) => panic!("{err:?}"),
                 ReadFileError::Parse(str) => {
                     println!("Failed to parse file: {}", str);
                     match read_error_confirmation_user_input(&stdin, &mut input) {
@@ -221,7 +214,7 @@ fn main() {
 
     let regex = Regex::new(pattern.to_str().unwrap()).unwrap();
     let files = get_items_in_dir(
-        &std::env::current_dir().unwrap().to_str().unwrap(),
+        std::env::current_dir().unwrap().to_str().unwrap(),
         &regex,
         recursive,
         include_dirs,
@@ -235,17 +228,16 @@ fn main() {
             .unwrap(),
         &files,
     )
-    .unwrap();
+        .unwrap();
 
     if let Some(vec) = run_edit_process(config.editor.as_str(), &mut file, &files) {
         for action in vec.iter() {
-            match action.apply() {
-                Err(k) => eprintln!(
+            if let Err(k) = action.apply() {
+                eprintln!(
                     "Failed to apply action for file \"{}\": {}",
                     action.target().name,
                     k
-                ),
-                _ => (),
+                )
             }
         }
         println!("Applied actions")

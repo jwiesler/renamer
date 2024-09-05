@@ -26,9 +26,9 @@ pub fn write_file_names<W: Write>(writer: &mut W, files: &Vec<FsItem>) -> IOResu
         let name = &x.name;
 
         if !first {
-            writer.write("\n".as_bytes())?;
+            writer.write_all("\n".as_bytes())?;
         }
-        writer.write(name.as_bytes())?;
+        writer.write_all(name.as_bytes())?;
         first = false;
     }
     Ok(())
@@ -37,20 +37,16 @@ pub fn write_file_names<W: Write>(writer: &mut W, files: &Vec<FsItem>) -> IOResu
 pub struct FilesFile(NamedTempFile);
 
 impl FilesFile {
-    pub fn new(field0: NamedTempFile) -> Self {
-        FilesFile(field0)
-    }
-
     pub fn path(&self) -> &Path {
         self.0.path()
     }
 
     pub fn write_new(mut file: NamedTempFile, files: &Vec<FsItem>) -> IOResult<Self> {
-        write_file_names(&mut BufWriter::new(&mut file), &files)?;
-        Ok(FilesFile::new(file))
+        write_file_names(&mut BufWriter::new(&mut file), files)?;
+        Ok(FilesFile(file))
     }
 
-    pub fn read<'a>(&mut self, files: &'a Vec<FsItem>) -> Result<Vec<Action<'a>>, ReadFileError> {
+    pub fn read<'a>(&mut self, files: &'a [FsItem]) -> Result<Vec<Action<'a>>, ReadFileError> {
         self.0.seek(SeekFrom::Start(0))?;
         read_file_names(BufReader::new(&mut self.0).lines(), files)
     }
@@ -58,7 +54,7 @@ impl FilesFile {
 
 #[derive(Debug)]
 pub enum ReadFileError {
-    Io(IOError),
+    Io(#[allow(unused)] IOError),
     Parse(&'static str),
 }
 
@@ -78,12 +74,12 @@ fn create_action<'a>(f: &str, item: &'a FsItem) -> Option<Action<'a>> {
     } else {
         return None;
     };
-    Some(Action::new(action_type, &item))
+    Some(Action::new(action_type, item))
 }
 
 pub fn read_file_names<R: BufRead>(
     mut reader: Lines<R>,
-    files: &Vec<FsItem>,
+    files: &[FsItem],
 ) -> Result<Vec<Action>, ReadFileError> {
     let mut actions = vec![];
     let mut files_it = files.iter();
@@ -94,20 +90,18 @@ pub fn read_file_names<R: BufRead>(
     loop {
         if let Some(line) = lines_it.next() {
             if let Some(fs_item) = files_it.next() {
-                if let Some(action) = create_action(line.as_str(), &fs_item) {
+                if let Some(action) = create_action(line.as_str(), fs_item) {
                     actions.push(action)
                 }
             } else {
                 return Err(ReadFileError::Parse("file contained too many file names"));
             }
+        } else if files_it.next().is_some() {
+            return Err(ReadFileError::Parse(
+                "file did not contain enough file names",
+            ));
         } else {
-            if let Some(_) = files_it.next() {
-                return Err(ReadFileError::Parse(
-                    "file did not contain enough file names",
-                ));
-            } else {
-                break;
-            }
+            break;
         }
     }
     Ok(actions)
