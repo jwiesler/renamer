@@ -16,7 +16,7 @@ pub struct Action<'a> {
 }
 
 fn should_rename(from: &str, to: &str) -> bool {
-    from.eq_ignore_ascii_case(to) || !fs::metadata(to).is_ok()
+    from.eq_ignore_ascii_case(to) || fs::metadata(to).is_err()
 }
 
 impl<'a> Action<'a> {
